@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="ISO-8859-1">
+	<title>VSocial Stripe</title>
+	
+	<!-- Scripts -->
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
+	
+	<!-- Styles -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
+</head>
+
+<body>
+	
+	<script>
+		$(document).ready(function() {
+			
+			// Load all the subscriptions
+			$.getJSON('api/subscription.php', function(resp) {
+				
+				// Loop through list and display
+				for(var i = 0; i < resp.data.length; i++) {
+					var template = $('#subscription_template').html();
+					
+					template = template.replace(/__PLAN_NAME__/g, resp.data[i]['plan']['name']);
+					template = template.replace(/__AMOUNT_INDOLLARS__/g, resp.data[i]['plan']['amount'] / 100);
+					template = template.replace(/__CURRENCY_CAPS__/g, resp.data[i]['plan']['currency'].toUpperCase());
+					template = template.replace(/__STATUS__/g, resp.data[i]['status'].toUpperCase());
+					template = template.replace(/__FROM__/g, moment.unix(resp.data[i]['current_period_start']).format('MM/DD/YYYY'));
+					template = template.replace(/__TO__/g, moment.unix(resp.data[i]['current_period_end']).format('MM/DD/YYYY'));
+					
+					$('#user_subscriptions').append(template);
+				}
+			})
+		});
+	</script>
+	
+	<div id="subscription_template" style="display:none;">
+		<div class="row" style="margin: 20px;">
+			<h3>__PLAN_NAME__</h3>
+			
+			<p>__AMOUNT_INDOLLARS__  __CURRENCY_CAPS__</p>
+			<p>From __FROM__ To __TO__</p>
+			<p>__STATUS__</p>
+		</div>
+	</div>
+	
+	<div id="user_subscriptions" style="margin: 20px;">
+		<h2 style="text-decoration: underline;">My Subscription</h2>
+		<!-- All the user subscriptions comes here -->
+	</div>
+	
+</body>
+
+</html>
