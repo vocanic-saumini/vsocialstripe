@@ -36,7 +36,12 @@
 					
 					$('#user_subscriptions').append(template);
 				}
-			})
+			});
+			
+			// Load all the invoices
+			$.getJSON('api/invoice.php', function(resp) {
+				console.log(resp);
+			});
 		});
 	</script>
 	
