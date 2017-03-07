@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="ISO-8859-1">
+	<title>VSocial Stripe</title>
+	
+	<!-- Scripts -->
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	
+	<!-- Styles -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
+</head>
+
+<body>
+	
+	<script>
+		$(document).ready(function() {
+			
+			// Load all the plans
+			$.getJSON('api/listplans.php', function(resp) {
+				
+				// Loop through list and display plans
+				for(var i = 0; i < resp.data.length; i++) {
+					var template = $('#plan_template').html();
+					
+					template = template.replace(/__NAME__/g, resp.data[i]['name']);
+					template = template.replace(/__AMOUNT_INDOLLARS__/g, resp.data[i]['amount'] / 100);
+					template = template.replace(/__AMOUNT__/g, resp.data[i]['amount']);
+					template = template.replace(/__CURRENCY__/g, resp.data[i]['currency']);
+					template = template.replace(/__CURRENCY_CAPS__/g, resp.data[i]['currency'].toUpperCase());
+					template = template.replace(/__TRIAL__/g, resp.data[i]['trial_period_days'] ? resp.data[i]['trial_period_days'] : 0);
+					
+					$('#subscription_plans').append(template);
+				}
+			})
+		});
+	</script>
+	
+	<div id="plan_template" style="display:none;">
+		<div class="col-sm-6 col-md-4">
+			<div class="thumbnail">
+				<div class="caption">
+					<h3>__NAME__</h3>
+					
+					<p>__AMOUNT_INDOLLARS__  __CURRENCY_CAPS__</p>
+					<p>__TRIAL__ Days of trial</p>
+					
+					<p>
+						<form action="create_subscription.php" method="POST">
+							<script
+								src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+								data-key="pk_test_tLCBlrwwbEVqbN9ebZ8GZuMA"
+								data-name="VSocial"
+								data-amount="__AMOUNT__"
+								data-label="Try Now">
+							</script>
+						</form>
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div style="margin: 20px; text-align: center;">
+		<div id="subscription_plans" class="row">
+			<!-- All the plans content comes here -->
+			
+		</div>
+	</div>
+	
+</body>
+
+</html>
