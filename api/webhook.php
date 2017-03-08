@@ -11,8 +11,8 @@ if($event_json->type == 'customer.subscription.trial_will_end') {
 	$customerId = $event_json->data->object->customer;
 	
 	try {
-// 		$customer = \Stripe\Customer::retrieve($customerId);
-		$customer = \Stripe\Customer::retrieve('cus_AFWCpyPxnFJ2Dz');
+		$customer = \Stripe\Customer::retrieve($customerId);
+// 		$customer = \Stripe\Customer::retrieve('cus_AFWCpyPxnFJ2Dz');
 		
 		mail($customer->email, 'Trial Ending Soon', 'Trial Ending Soon');
 		
