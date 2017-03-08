@@ -14,6 +14,12 @@
 	<!-- Styles -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css">
+	
+	<style>
+		#billing .row {
+			margin: 5px;
+		}
+	</style>
 </head>
 
 <body>
@@ -94,10 +100,25 @@
 					template += '<td><button class="inovice btn btn-primary" data-invoice=\'' + JSON.stringify(resp.data[i]) + '\'><span class="glyphicon glyphicon-download"></span></button></td>';
 					template += '</tr>';
 					
-					console.log(resp.data[i]);
+					//console.log(resp.data[i]);
 					
 					$('#user_invoices').append(template);
 				}
+			});
+			
+			// Load billing details
+			$.getJSON('api/customer.php?customer=cus_AFWCpyPxnFJ2Dz', function(resp) {
+				//console.log(resp);
+				
+				$('#billing').append('<div class="row"><div class="col-md-4"><label>Name</label> : </div><div class="col-md-8">' + resp.sources.data[0].name + '</div></div>');
+				$('#billing').append('<div class="row"><div class="col-md-4"><label>Email</label> : </div><div class="col-md-8">' + resp.email + '</div></div>');
+				$('#billing').append('<div class="row"><div class="col-md-4"><label>Address 1</label> : </div><div class="col-md-8">' + resp.sources.data[0].address_line1 + '</div></div>');
+				$('#billing').append('<div class="row"><div class="col-md-4"><label>City</label> : </div><div class="col-md-8">' + resp.sources.data[0].address_city + '</div></div>');
+				$('#billing').append('<div class="row"><div class="col-md-4"><label>Postal Code</label> : </div><div class="col-md-8">' + resp.sources.data[0].address_zip + '</div></div>');
+				$('#billing').append('<div class="row"><div class="col-md-4"><label>Country</label> : </div><div class="col-md-8">' + resp.sources.data[0].address_country + '</div></div>');
+				$('#billing').append('<div class="row"><div class="col-md-4"><label>Card</label> : </div><div class="col-md-8">' + resp.sources.data[0].brand + '</div></div>');
+				$('#billing').append('<div class="row"><div class="col-md-4"><label>Card Number</label> : </div><div class="col-md-8">XXXX-XXXX-XXXX-' + resp.sources.data[0].last4 + '</div></div>');
+				$('#billing').append('<div class="row"><div class="col-md-4"><label>Expiry Date</label> : </div><div class="col-md-8">' + resp.sources.data[0].exp_month + '/' + resp.sources.data[0].exp_year + '</div></div>');
 			});
 		});
 	</script>
@@ -135,8 +156,10 @@
 		</table>
 	</div>
 	
-	<div style="margin: 20px;">
+	<div id="billing" style="margin: 20px;">
 		<h2 style="text-decoration: underline;">Billing Details</h2>
+		
+		<!-- User billing details comes here -->
 	</div>
 	
 </body>
