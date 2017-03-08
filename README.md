@@ -6,9 +6,9 @@
 
 ### Things to go thorugh
 
-07/03/2017
+###### 07/03/2017
 1. Invoice pdf - Currenltly using jsPDF JS plugin
 
-08/03/2017
+###### 08/03/2017
 1. Stripe trial period end notification email
 2. Invoice # something readable
