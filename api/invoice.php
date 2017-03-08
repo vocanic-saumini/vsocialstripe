@@ -2,8 +2,9 @@
 
 require_once('init.php');
 
+$customerId	= $_GET['customer'];
 $invoice = \Stripe\Invoice::all(array(
-	'customer'	=> 'cus_AF34La3bXOrBwQ'
+	'customer'	=> $customerId
 ));
 
 echo $invoice->__toJSON();

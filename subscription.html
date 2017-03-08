@@ -36,7 +36,7 @@
 					
 					pdf.setFontSize(10);
 					pdf.text(moment.unix(invoiceData.date).format('MMMM Do YYYY'), 180, 25);
-					pdf.text('INVOICE #' + invoiceData.id, 20, 35);
+					pdf.text('INVOICE #' + invoiceData.receipt_number, 20, 35);
 					pdf.text(invoiceData.total / 100 + ' ' + invoiceData.currency.toUpperCase(), 180, 50);
 					
 					pdf.text('Description', 20, 70);
@@ -65,7 +65,7 @@
 			});
 			
 			// Load all the subscriptions
-			$.getJSON('api/subscription.php?customer=cus_AF34La3bXOrBwQ', function(resp) {
+			$.getJSON('api/subscription.php?customer=cus_AFWCpyPxnFJ2Dz', function(resp) {
 				
 				// Loop through list and display
 				for(var i = 0; i < resp.data.length; i++) {
@@ -83,7 +83,7 @@
 			});
 			
 			// Load all the invoices
-			$.getJSON('api/invoice.php', function(resp) {
+			$.getJSON('api/invoice.php?customer=cus_AFWCpyPxnFJ2Dz', function(resp) {
 				
 				// Loop through list and display
 				for(var i = 0; i < resp.data.length; i++) {
@@ -94,7 +94,7 @@
 					template += '<td><button class="inovice btn btn-primary" data-invoice=\'' + JSON.stringify(resp.data[i]) + '\'><span class="glyphicon glyphicon-download"></span></button></td>';
 					template += '</tr>';
 					
-					//console.log(resp.data[i]);
+					console.log(resp.data[i]);
 					
 					$('#user_invoices').append(template);
 				}
