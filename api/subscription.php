@@ -2,8 +2,9 @@
 
 require_once('init.php');
 
+$customerId	= $_GET['customer'];
 $subscription = \Stripe\Subscription::all(array(
-	'customer'	=> 'cus_AF34La3bXOrBwQ'
+	'customer'	=> $customerId
 ));
 
 echo $subscription->__toJSON();

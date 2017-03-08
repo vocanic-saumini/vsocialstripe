@@ -9,6 +9,7 @@
 	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.3/jspdf.debug.js"></script>
 	
 	<!-- Styles -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -20,8 +21,51 @@
 	<script>
 		$(document).ready(function() {
 			
+			$('#user_invoices').on('click', '.inovice', function(e) {
+				e.preventDefault();
+				
+				var invoiceData = $(this).data('invoice');
+				
+				// Retrieve customer data
+				$.getJSON('api/customer.php?customer='+invoiceData.customer, function(resp) {
+					var customer = resp;
+					//console.log(customer);
+					
+					// Generate PDF
+					var pdf = new jsPDF();
+					
+					pdf.setFontSize(10);
+					pdf.text(moment.unix(invoiceData.date).format('MMMM Do YYYY'), 180, 25);
+					pdf.text('INVOICE #' + invoiceData.id, 20, 35);
+					pdf.text(invoiceData.total / 100 + ' ' + invoiceData.currency.toUpperCase(), 180, 50);
+					
+					pdf.text('Description', 20, 70);
+					pdf.text('Unit', 100, 70);
+					pdf.text('Price', 125, 70);
+					pdf.text('Amount', 150, 70);
+					// Invoice lines
+					for(var i = 0; i < invoiceData.lines.data.length; i++) {
+						var y = 70 + ((i + 1) * 10);
+						
+						pdf.text(invoiceData.lines.data[i].plan.name, 20, y);
+						pdf.text('' + invoiceData.lines.data[i].quantity, 100, y);
+						pdf.text('' + invoiceData.lines.data[i].plan.amount / 100, 125, y);
+						pdf.text('' + invoiceData.lines.data[i].quantity * (invoiceData.lines.data[i].plan.amount / 100), 150, y);
+					}
+					
+					var nextY = y + 20;
+					
+					pdf.text('SUBTOTAL', 20, nextY);
+					pdf.text(''+invoiceData.subtotal, 150, nextY);
+					pdf.text('TOTAL', 20, nextY + 10);
+					pdf.text(''+invoiceData.total, 150, nextY + 10);
+					
+					pdf.save('Invoice.pdf');
+				});
+			});
+			
 			// Load all the subscriptions
-			$.getJSON('api/subscription.php', function(resp) {
+			$.getJSON('api/subscription.php?customer=cus_AF34La3bXOrBwQ', function(resp) {
 				
 				// Loop through list and display
 				for(var i = 0; i < resp.data.length; i++) {
@@ -40,7 +84,20 @@
 			
 			// Load all the invoices
 			$.getJSON('api/invoice.php', function(resp) {
-				console.log(resp);
+				
+				// Loop through list and display
+				for(var i = 0; i < resp.data.length; i++) {
+					var template = '<tr>';
+					
+					template += '<td>' + moment.unix(resp.data[i]['date']).format('MM/DD/YYYY') + '</td>';
+					template += '<td>' + resp.data[i]['currency'].toUpperCase() + ' ' + resp.data[i]['total'] / 100 + '</td>';
+					template += '<td><button class="inovice btn btn-primary" data-invoice=\'' + JSON.stringify(resp.data[i]) + '\'><span class="glyphicon glyphicon-download"></span></button></td>';
+					template += '</tr>';
+					
+					//console.log(resp.data[i]);
+					
+					$('#user_invoices').append(template);
+				}
 			});
 		});
 	</script>
@@ -58,6 +115,28 @@
 	<div id="user_subscriptions" style="margin: 20px;">
 		<h2 style="text-decoration: underline;">My Subscription</h2>
 		<!-- All the user subscriptions comes here -->
+	</div>
+	
+	<div style="margin: 20px;">
+		<h2 style="text-decoration: underline;">My Invoices</h2>
+		
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th>Date</th>
+					<th>Amount</th>
+					<th>View</th>
+				</tr>
+			</thead>
+			
+			<tbody id="user_invoices">
+				<!-- All the user invoices comes here -->
+			</tbody>
+		</table>
+	</div>
+	
+	<div style="margin: 20px;">
+		<h2 style="text-decoration: underline;">Billing Details</h2>
 	</div>
 	
 </body>
