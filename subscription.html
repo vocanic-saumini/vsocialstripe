@@ -26,6 +26,50 @@
 	
 	<script>
 		$(document).ready(function() {
+			var user = 'cus_AFWCpyPxnFJ2Dz';
+			//var user = 'cus_AFnjZo2vfI8gRq';
+			
+			$('#subscriptionModal').on('click', '.subscribe', function(e) {
+				var subscription	= $(this).data('subscription');
+				var plan			= $(this).data('plan');
+				
+				$.post('api/updatesubscription.php', {
+					subscription	: subscription,
+		    		plan			: plan
+		    	}, function(resp) {
+		    		console.log(resp);
+		    	});
+			});
+			
+			$('#user_subscriptions').on('click', '.upgrade_subscription', function(e) {
+				e.preventDefault();
+				
+				var currentPlan		= $(this).data('planid');
+				var subscriptionId	= $(this).data('subscription');
+				
+				// Load all the plans
+				$.getJSON('api/listplans.php', function(resp) {
+					$('#subscription_plans').empty();
+					
+					// Loop through list and display plans
+					for(var i = 0; i < resp.data.length; i++) {
+						var template = $('#plan_template').html();
+						
+						template = template.replace(/__NAME__/g, resp.data[i]['name']);
+						template = template.replace(/__PLAN__/g, resp.data[i]['id']);
+						template = template.replace(/__AMOUNT_INDOLLARS__/g, resp.data[i]['amount'] / 100);
+						template = template.replace(/__CURRENCY_CAPS__/g, resp.data[i]['currency'].toUpperCase());
+						template = template.replace(/__TRIAL__/g, resp.data[i]['trial_period_days'] ? resp.data[i]['trial_period_days'] : 0);
+						template = template.replace(/__SUBSCRIPTION__/g, subscriptionId);
+						
+						$('#subscription_plans').append(template);
+					}
+					
+					$('#subscriptionModal').modal('show');
+					
+					$('#subscription_plans button[data-plan="'+currentPlan+'"]').prop('disabled', true);
+				})
+			});
 			
 			$('#user_invoices').on('click', '.inovice', function(e) {
 				e.preventDefault();
@@ -62,21 +106,23 @@
 					var nextY = y + 20;
 					
 					pdf.text('SUBTOTAL', 20, nextY);
-					pdf.text(''+invoiceData.subtotal, 150, nextY);
+					pdf.text(''+invoiceData.subtotal / 100, 150, nextY);
 					pdf.text('TOTAL', 20, nextY + 10);
-					pdf.text(''+invoiceData.total, 150, nextY + 10);
+					pdf.text(''+invoiceData.total / 100, 150, nextY + 10);
 					
 					pdf.save('Invoice.pdf');
 				});
 			});
 			
 			// Load all the subscriptions
-			$.getJSON('api/subscription.php?customer=cus_AFWCpyPxnFJ2Dz', function(resp) {
+			$.getJSON('api/subscription.php?customer='+user, function(resp) {
 				
 				// Loop through list and display
 				for(var i = 0; i < resp.data.length; i++) {
 					var template = $('#subscription_template').html();
 					
+					template = template.replace(/__SUBSCRIPTION__/g, resp.data[i]['id']);
+					template = template.replace(/__PLAN_ID__/g, resp.data[i]['plan']['id']);
 					template = template.replace(/__PLAN_NAME__/g, resp.data[i]['plan']['name']);
 					template = template.replace(/__AMOUNT_INDOLLARS__/g, resp.data[i]['plan']['amount'] / 100);
 					template = template.replace(/__CURRENCY_CAPS__/g, resp.data[i]['plan']['currency'].toUpperCase());
@@ -89,7 +135,7 @@
 			});
 			
 			// Load all the invoices
-			$.getJSON('api/invoice.php?customer=cus_AFWCpyPxnFJ2Dz', function(resp) {
+			$.getJSON('api/invoice.php?customer='+user, function(resp) {
 				
 				// Loop through list and display
 				for(var i = 0; i < resp.data.length; i++) {
@@ -107,7 +153,7 @@
 			});
 			
 			// Load billing details
-			$.getJSON('api/customer.php?customer=cus_AFWCpyPxnFJ2Dz', function(resp) {
+			$.getJSON('api/customer.php?customer='+user, function(resp) {
 				//console.log(resp);
 				
 				$('#billing').append('<div class="row"><div class="col-md-4"><label>Name</label> : </div><div class="col-md-8">' + resp.sources.data[0].name + '</div></div>');
@@ -123,6 +169,21 @@
 		});
 	</script>
 	
+	<div id="plan_template" style="display:none;">
+		<div class="col-sm-6 col-md-4">
+			<div class="thumbnail">
+				<div class="caption">
+					<h3>__NAME__</h3>
+					
+					<p>__AMOUNT_INDOLLARS__  __CURRENCY_CAPS__</p>
+					<p>__TRIAL__ Days of trial</p>
+					
+					<button class="subscribe btn btn-primary" data-subscription="__SUBSCRIPTION__" data-plan="__PLAN__">Try now</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
 	<div id="subscription_template" style="display:none;">
 		<div class="row" style="margin: 20px;">
 			<h3>__PLAN_NAME__</h3>
@@ -130,6 +191,24 @@
 			<p>__AMOUNT_INDOLLARS__  __CURRENCY_CAPS__</p>
 			<p>From __FROM__ To __TO__</p>
 			<p>__STATUS__</p>
+			<a href="#" class="upgrade_subscription" data-planid="__PLAN_ID__" data-subscription="__SUBSCRIPTION__">Update Subscription</a>
+		</div>
+	</div>
+	
+	<div id="subscriptionModal" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Subscription Plans</h4>
+				</div>
+				
+				<div id="subscription_plans" class="modal-body row">
+					<!-- All the plans content comes here -->
+					
+				</div>
+			</div>
 		</div>
 	</div>
 	
