@@ -75,6 +75,7 @@
 					template = template.replace(/__CURRENCY__/g, resp.data[i]['currency']);
 					template = template.replace(/__CURRENCY_CAPS__/g, resp.data[i]['currency'].toUpperCase());
 					template = template.replace(/__TRIAL__/g, resp.data[i]['trial_period_days'] ? resp.data[i]['trial_period_days'] : 0);
+					template = template.replace(/__DESCRIPTION__/g, resp.data[i]['metadata']['description'] ? resp.data[i]['metadata']['description'] : '');
 					
 					$('#subscription_plans').append(template);
 				}
@@ -90,6 +91,8 @@
 					
 					<p>__AMOUNT_INDOLLARS__  __CURRENCY_CAPS__</p>
 					<p>__TRIAL__ Days of trial</p>
+					
+					<p>__DESCRIPTION__</p>
 					
 					<button class="subscribe btn btn-primary" data-amount="__AMOUNT__" data-currency="__CURRENCY__" data-plan="__PLAN__">Try now</button>
 				</div>
