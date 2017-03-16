@@ -18,6 +18,9 @@
 <body>
 	
 	<script>
+		//var urlpath	= 'curl/'; // To use curl
+		var urlpath		= ''; // To use Strip - PHP library
+		
 		// Separating three digits using comma
 		$.fn.digits = function() {
 			return this.each(function() {
@@ -76,7 +79,7 @@
 			});
 			
 			// Load all the plans
-			$.getJSON('api/listplans.php', function(resp) {
+			$.getJSON('api/'+urlpath+'listplans.php', function(resp) {
 				
 				console.log('Listing Plans');
 				
@@ -95,12 +98,12 @@
 					var template	= $('#plan_template').html();
 					var plan 		= resp.data[i];
 					
-					console.log(plan);
-					
 					// Use the metdata 'product' to filter out for communit manager plans
 					if(plan['metadata']['product'] == undefined || plan['metadata']['product'] != 'cm') {
 						continue;
 					}
+					
+					console.log(plan);
 					
 					template = template.replace(/__NAME__/g,	plan['name']);
 					template = template.replace(/__PLAN__/g,	plan['id']);

@@ -25,15 +25,30 @@
 <body>
 	
 	<script>
+		var urlpath		= 'curl/'; // To use curl
+		//var urlpath		= ''; // To use Strip - PHP library
+		var user		= 'cus_AIQCp4xTozIlPj';
+		
+		// Separating three digits using comma
+		$.fn.digits = function() {
+			return this.each(function() {
+				$(this).text($(this).text().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,")); 
+		    });
+		};
+		
+		// This will sort your array
+		function SortByDate(a, b) {
+			var aDate = a.created;
+			var bDate = b.created; 
+			return ((aDate < bDate) ? -1 : ((aDate > bDate) ? 1 : 0));
+		}
+		
 		$(document).ready(function() {
-			var user = 'cus_AFWCpyPxnFJ2Dz';
-			//var user = 'cus_AFnjZo2vfI8gRq';
-			
 			$('#subscriptionModal').on('click', '.subscribe', function(e) {
 				var subscription	= $(this).data('subscription');
 				var plan			= $(this).data('plan');
 				
-				$.post('api/updatesubscription.php', {
+				$.post('api/'+urlpath+'updatesubscription.php', {
 					subscription	: subscription,
 		    		plan			: plan
 		    	}, function(resp) {
@@ -41,34 +56,120 @@
 		    	});
 			});
 			
-			$('#user_subscriptions').on('click', '.upgrade_subscription', function(e) {
+			$('#user_subscriptions').on('click', '.subscribe', function(e) {
 				e.preventDefault();
 				
-				var currentPlan		= $(this).data('planid');
-				var subscriptionId	= $(this).data('subscription');
+				var selectedProduct	= $(this).data('product');
 				
-				// Load all the plans
-				$.getJSON('api/listplans.php', function(resp) {
+				// Load the product specific plans
+				$.getJSON('api/'+urlpath+'listplans.php', function(resp) {
+					
+					if(resp.error != undefined) {
+						console.log('Error in listing plans');
+						alert(resp.error.message);
+						return false;
+					}
+					
+					// Sorting plans according to created time - currently the API doesn't support order
+					// Note - When creating plan have to create in the order of display
+					resp.data.sort(SortByDate);
+					
 					$('#subscription_plans').empty();
 					
 					// Loop through list and display plans
 					for(var i = 0; i < resp.data.length; i++) {
-						var template = $('#plan_template').html();
+						var template	= $('#subscribeplan_template').html();
+						var plan 		= resp.data[i];
 						
-						template = template.replace(/__NAME__/g, resp.data[i]['name']);
-						template = template.replace(/__PLAN__/g, resp.data[i]['id']);
-						template = template.replace(/__AMOUNT_INDOLLARS__/g, resp.data[i]['amount'] / 100);
-						template = template.replace(/__CURRENCY_CAPS__/g, resp.data[i]['currency'].toUpperCase());
-						template = template.replace(/__TRIAL__/g, resp.data[i]['trial_period_days'] ? resp.data[i]['trial_period_days'] : 0);
-						template = template.replace(/__SUBSCRIPTION__/g, subscriptionId);
+						// Use the metdata 'product' to filter out for communit manager plans
+						if(plan['metadata']['product'] == undefined || plan['metadata']['product'] != selectedProduct) {
+							continue;
+						}
+						
+						console.log(plan);
+						
+						template = template.replace(/__NAME__/g,	plan['name']);
+						template = template.replace(/__PLAN__/g,	plan['id']);
+						template = template.replace(/__AMOUNT__/g,	plan['amount']);
+						template = template.replace(/__CURRENCY__/g,	plan['currency']);
+						template = template.replace(/__INTERVAL__/g,	plan['interval']);
+						template = template.replace(/__TRIAL__/g,		plan['trial_period_days'] ? plan['trial_period_days'] : 0);
+						template = template.replace(/__DESCRIPTION__/g,	plan['metadata']['description'] ? plan['metadata']['description'] : '');
+						template = template.replace(/__AMOUNTASINT__/g,	(plan['amount'] / 100).toFixed(2));
 						
 						$('#subscription_plans').append(template);
 					}
 					
+					$('#subscriptionModal span.digits').digits();
 					$('#subscriptionModal').modal('show');
-					
-					$('#subscription_plans button[data-plan="'+currentPlan+'"]').prop('disabled', true);
 				})
+			});
+			
+			$('#user_subscriptions').on('click', '.update_subscription', function(e) {
+				e.preventDefault();
+				
+				var currentPlan		= $(this).data('planid');
+				var subscriptionId	= $(this).data('subscription');
+				var selectedProduct	= $(this).data('product');
+				
+				// Load the product specific plans
+				$.getJSON('api/'+urlpath+'listplans.php', function(resp) {
+					
+					if(resp.error != undefined) {
+						console.log('Error in listing plans');
+						alert(resp.error.message);
+						return false;
+					}
+					
+					// Sorting plans according to created time - currently the API doesn't support order
+					// Note - When creating plan have to create in the order of display
+					resp.data.sort(SortByDate);
+					
+					$('#subscription_plans').empty();
+					
+					// Loop through list and display plans
+					for(var i = 0; i < resp.data.length; i++) {
+						var template	= $('#updateplan_template').html();
+						var plan 		= resp.data[i];
+						
+						// Use the metdata 'product' to filter out for communit manager plans
+						// Also don't display current subscribed plan
+						if(plan['metadata']['product'] == undefined || plan['metadata']['product'] != selectedProduct
+								|| plan['id'] == currentPlan) {
+							continue;
+						}
+						
+						console.log(plan);
+						
+						template = template.replace(/__NAME__/g,	plan['name']);
+						template = template.replace(/__PLAN__/g,	plan['id']);
+						template = template.replace(/__CURRENCY__/g,	plan['currency']);
+						template = template.replace(/__INTERVAL__/g,	plan['interval']);
+						template = template.replace(/__TRIAL__/g,		plan['trial_period_days'] ? plan['trial_period_days'] : 0);
+						template = template.replace(/__DESCRIPTION__/g,	plan['metadata']['description'] ? plan['metadata']['description'] : '');
+						template = template.replace(/__AMOUNTASINT__/g,	(plan['amount'] / 100).toFixed(2));
+						template = template.replace(/__SUBSCRIPTION__/g,subscriptionId);
+						
+						$('#subscription_plans').append(template);
+					}
+					
+					$('#subscriptionModal span.digits').digits();
+					$('#subscriptionModal').modal('show');
+				})
+			});
+			
+			$('#user_subscriptions').on('click', '.cancel_subscription', function(e) {
+				e.preventDefault();
+				
+				var subscriptionId	= $(this).data('subscription');
+				
+				console.log('Cancelling subscription');
+				
+				$.post('api/'+urlpath+'cancelsubscription.php', {
+					subscription : subscriptionId
+		    	}, function(resp) {
+		    		console.log(resp);
+		    	});
 			});
 			
 			$('#user_invoices').on('click', '.inovice', function(e) {
@@ -77,9 +178,8 @@
 				var invoiceData = $(this).data('invoice');
 				
 				// Retrieve customer data
-				$.getJSON('api/customer.php?customer='+invoiceData.customer, function(resp) {
+				$.getJSON('api/'+urlpath+'customer.php?customer='+invoiceData.customer, function(resp) {
 					var customer = resp;
-					//console.log(customer);
 					
 					// Generate PDF
 					var pdf = new jsPDF();
@@ -93,14 +193,15 @@
 					pdf.text('Unit', 100, 70);
 					pdf.text('Price', 125, 70);
 					pdf.text('Amount', 150, 70);
+					
 					// Invoice lines
 					for(var i = 0; i < invoiceData.lines.data.length; i++) {
 						var y = 70 + ((i + 1) * 10);
 						
-						pdf.text(invoiceData.lines.data[i].plan.name, 20, y);
+						pdf.text(invoiceData.lines.data[i].plan.statement_descriptor, 20, y);
 						pdf.text('' + invoiceData.lines.data[i].quantity, 100, y);
-						pdf.text('' + invoiceData.lines.data[i].plan.amount / 100, 125, y);
-						pdf.text('' + invoiceData.lines.data[i].quantity * (invoiceData.lines.data[i].plan.amount / 100), 150, y);
+						pdf.text('' + invoiceData.lines.data[i].amount / 100, 125, y);
+						pdf.text('' + invoiceData.lines.data[i].quantity * (invoiceData.lines.data[i].amount / 100), 150, y);
 					}
 					
 					var nextY = y + 20;
@@ -115,45 +216,92 @@
 			});
 			
 			// Load all the subscriptions
-			$.getJSON('api/subscription.php?customer='+user, function(resp) {
+			$.getJSON('api/'+urlpath+'subscription.php?customer='+user, function(resp) {
+				
+				console.log('Listing subscriptions');
+				
+				if(resp.error != undefined) {
+					console.log('Error in listing subscriptions');
+					alert(resp.error.message);
+					return false;
+				}
+				
+				// Sorting plans according to subscribed time
+				resp.subscribed.data.sort(SortByDate);
+				
+				var total = 0;
 				
 				// Loop through list and display
-				for(var i = 0; i < resp.data.length; i++) {
-					var template = $('#subscription_template').html();
+				for(var i = 0; i < resp.subscribed.data.length; i++) {
+					var template		= $('#subscription_template').html();
+					var subscription	= resp.subscribed.data[i];
 					
-					template = template.replace(/__SUBSCRIPTION__/g, resp.data[i]['id']);
-					template = template.replace(/__PLAN_ID__/g, resp.data[i]['plan']['id']);
-					template = template.replace(/__PLAN_NAME__/g, resp.data[i]['plan']['name']);
-					template = template.replace(/__AMOUNT_INDOLLARS__/g, resp.data[i]['plan']['amount'] / 100);
-					template = template.replace(/__CURRENCY_CAPS__/g, resp.data[i]['plan']['currency'].toUpperCase());
-					template = template.replace(/__STATUS__/g, resp.data[i]['status'].toUpperCase());
-					template = template.replace(/__FROM__/g, moment.unix(resp.data[i]['current_period_start']).format('MM/DD/YYYY'));
-					template = template.replace(/__TO__/g, moment.unix(resp.data[i]['current_period_end']).format('MM/DD/YYYY'));
+					console.log(subscription);
+					
+					template = template.replace(/__SUBSCRIPTION__/g,	subscription['id']);
+					template = template.replace(/__PLAN_ID__/g,			subscription['plan']['id']);
+					template = template.replace(/__PRODUCT__/g,			subscription['plan']['metadata']['product']);
+					template = template.replace(/__PLAN_NAME__/g,		subscription['plan']['statement_descriptor']);
+					template = template.replace(/__CURRENCY__/g,		subscription['plan']['currency'].toUpperCase());
+					
+					if(subscription['status'] == 'trialing') {
+						template = template.replace(/__AMOUNTASINT__/g,		'0.00');
+					} else {
+						template = template.replace(/__AMOUNTASINT__/g,		(subscription['plan']['amount'] / 100).toFixed(2));						
+					}
+					
+					template = template.replace(/__DESCRIPTION__/g,		subscription['plan']['metadata']['description']);
+					template = template.replace(/__STATUS__/g,			subscription['status'].toUpperCase());
+					template = template.replace(/__FROM__/g,			moment.unix(subscription['current_period_start']).format('DD MMM, YYYY'));
+					template = template.replace(/__TO__/g,				moment.unix(subscription['current_period_end']).format('DD MMM, YYYY'));
+					
+					total += subscription['plan']['amount'];
 					
 					$('#user_subscriptions').append(template);
 				}
+				
+				// Loop through unsubscripbed plan & display
+				for(var key in resp.notsubscribed) {
+					var template = $('#nonsubscription_template').html();
+					
+					template = template.replace(/__PRODUCT_NAME__/g,	resp.notsubscribed[key]);
+					template = template.replace(/__PRODUCT_ID__/g,		key);
+					
+					$('#user_subscriptions').append(template);
+				}
+				
+				
+				$('#user_subscriptions').append('<div class="row"><div class="col-md-6"><h3>Total</h3></div><div class="col-md-6"><span class="pull-right"><h3>SGD<span class="digits">' 
+						+ (total / 100).toFixed(2) + '</span></h3></span></div></div>');
+				
+				$('span.digits').digits();
 			});
 			
 			// Load all the invoices
-			$.getJSON('api/invoice.php?customer='+user, function(resp) {
+			$.getJSON('api/'+urlpath+'invoice.php?customer='+user, function(resp) {
+				
+				console.log('Listing invoices');
 				
 				// Loop through list and display
 				for(var i = 0; i < resp.data.length; i++) {
-					var template = '<tr>';
+					var invoice = resp.data[i];
 					
-					template += '<td>' + moment.unix(resp.data[i]['date']).format('MM/DD/YYYY') + '</td>';
-					template += '<td>' + resp.data[i]['currency'].toUpperCase() + ' ' + resp.data[i]['total'] / 100 + '</td>';
-					template += '<td><button class="inovice btn btn-primary" data-invoice=\'' + JSON.stringify(resp.data[i]) + '\'><span class="glyphicon glyphicon-download"></span></button></td>';
+					var template = '<tr>';
+					template += '<td>' + moment.unix(invoice['date']).format('YYYY-MM-DD HH:mm:ss') + '</td>';
+					template += '<td><span class="digits">' + (invoice['total'] / 100).toFixed(2) + '</span></td>';
+					template += '<td><button class="inovice btn btn-primary" data-invoice=\'' + JSON.stringify(invoice) + '\'><span class="glyphicon glyphicon-download"></span></button></td>';
 					template += '</tr>';
 					
-					//console.log(resp.data[i]);
+					console.log(invoice);
 					
 					$('#user_invoices').append(template);
 				}
+				
+				$('span.digits').digits();
 			});
 			
 			// Load billing details
-			$.getJSON('api/customer.php?customer='+user, function(resp) {
+			$.getJSON('api/'+urlpath+'customer.php?customer='+user, function(resp) {
 				//console.log(resp);
 				
 				$('#billing').append('<div class="row"><div class="col-md-4"><label>Name</label> : </div><div class="col-md-8">' + resp.sources.data[0].name + '</div></div>');
@@ -169,16 +317,37 @@
 		});
 	</script>
 	
-	<div id="plan_template" style="display:none;">
+	<div id="updateplan_template" style="display:none;">
 		<div class="col-sm-6 col-md-4">
 			<div class="thumbnail">
 				<div class="caption">
 					<h3>__NAME__</h3>
 					
-					<p>__AMOUNT_INDOLLARS__  __CURRENCY_CAPS__</p>
+					<p><span style="text-transform: uppercase;">__CURRENCY__<span> <span class="digits">__AMOUNTASINT__</span></p>
+					<p>per __INTERVAL__</p>
 					<p>__TRIAL__ Days of trial</p>
 					
-					<button class="subscribe btn btn-primary" data-subscription="__SUBSCRIPTION__" data-plan="__PLAN__">Try now</button>
+					<p>__DESCRIPTION__</p>
+					
+					<button class="subscribe btn btn-primary" data-subscription="__SUBSCRIPTION__" data-plan="__PLAN__">Update</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id="subscribeplan_template" style="display:none;">
+		<div class="col-sm-6 col-md-4">
+			<div class="thumbnail">
+				<div class="caption">
+					<h3>__NAME__</h3>
+					
+					<p><span style="text-transform: uppercase;">__CURRENCY__<span> <span class="digits">__AMOUNTASINT__</span></p>
+					<p>per __INTERVAL__</p>
+					<p>__TRIAL__ Days of trial</p>
+					
+					<p>__DESCRIPTION__</p>
+					
+					<button class="subscribe btn btn-primary" data-amount="__AMOUNT__" data-currency="__CURRENCY__" data-plan="__PLAN__">Try now</button>
 				</div>
 			</div>
 		</div>
@@ -186,12 +355,27 @@
 	
 	<div id="subscription_template" style="display:none;">
 		<div class="row" style="margin: 20px;">
-			<h3>__PLAN_NAME__</h3>
+			<div class="row">
+				<div class="col-md-6"><h4>__PLAN_NAME__ __FROM__ - __TO__</h4></div>
+    			<div class="col-md-6"><span class="pull-right"><h4>__CURRENCY__ <span class="digits">__AMOUNTASINT__</span></h4></span></div>
+			</div>
 			
-			<p>__AMOUNT_INDOLLARS__  __CURRENCY_CAPS__</p>
-			<p>From __FROM__ To __TO__</p>
+			<p>__DESCRIPTION__</p>
 			<p>__STATUS__</p>
-			<a href="#" class="upgrade_subscription" data-planid="__PLAN_ID__" data-subscription="__SUBSCRIPTION__">Update Subscription</a>
+			<a href="#" class="update_subscription" data-product="__PRODUCT__" data-planid="__PLAN_ID__" data-subscription="__SUBSCRIPTION__">Update Subscription</a><br/>
+			<a href="#" class="cancel_subscription" data-subscription="__SUBSCRIPTION__">Cancel Subscription</a>
+		</div>
+	</div>
+	
+	<div id="nonsubscription_template" style="display:none;">
+		<div class="row" style="margin: 20px;">
+			<div class="row">
+				<div class="col-md-6"><h4>__PRODUCT_NAME__</h4></div>
+				<div class="col-md-6"><span class="pull-right"><h4>SGD 0.00</h4></span></div>
+			</div>
+			
+			<p>No active subscription</p>
+			<a href="#" class="subscribe" data-product="__PRODUCT_ID__">Subscribe Now</a>
 		</div>
 	</div>
 	
@@ -224,8 +408,8 @@
 			<thead>
 				<tr>
 					<th>Date</th>
-					<th>Amount</th>
-					<th>View</th>
+					<th>Amount (SGD)</th>
+					<th>Download</th>
 				</tr>
 			</thead>
 			

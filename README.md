@@ -6,8 +6,16 @@
 
 ### Things I tried
 
-1. Listing plans - Check following link https://dev1.vocanic.net/stripe/
+#####Check things in below links
 
+- https://dev1.vocanic.net/stripe/
+- https://dev1.vocanic.net/stripe/subscription.html
+
+1. Listing plans
+2. Listing user subscriptions
+3. Listing user invoices & Download
+4. Cancel subscription
+5. 
 
 ### Things to go thorugh
 

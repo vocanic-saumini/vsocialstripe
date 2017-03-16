@@ -1,31 +1,27 @@
 <?php
 
-require_once('init.php');
-
 // Inputs
 $customerId = $_GET['customer'];
 
 // Get user subscriptions
-try {
-	
-	$subscriptions = \Stripe\Subscription::all(array(
-		'customer' => $customerId
-	));
-	
-} catch(Exception $e) {
-	echo json_encode(array('error' => array('message' => $e->getMessage())));
-	return;
-}
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, "https://api.stripe.com/v1/subscriptions?customer=$customerId");
+curl_setopt($ch, CURLOPT_USERPWD, "sk_test_SHbu5VHieCiBSe7jdwwgZJ0H:");
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+$subscriptions = json_decode(curl_exec($ch));
+
+curl_close($ch);
 
 // Get all the plans
-try {
-	
-	$plans = \Stripe\Plan::all();
-	
-} catch(Exception $e) {
-	echo json_encode(array('error' => array('message' => $e->getMessage())));
-	return;
-}
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, 'https://api.stripe.com/v1/plans');
+curl_setopt($ch, CURLOPT_USERPWD, "sk_test_SHbu5VHieCiBSe7jdwwgZJ0H:");
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+$plans = json_decode(curl_exec($ch));
+
+curl_close($ch);
 
 // Loop through the plan & look for product user not subscribed
 $notSubscribedProducts	= array();
