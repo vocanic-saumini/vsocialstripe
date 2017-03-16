@@ -18,6 +18,20 @@
 <body>
 	
 	<script>
+		// Separating three digits using comma
+		$.fn.digits = function() {
+			return this.each(function() {
+				$(this).text($(this).text().replace(/(\d)(?=(\d\d\d)+(?!\d))/g, "$1,")); 
+		    });
+		};
+		
+		// This will sort your array
+		function SortByDate(a, b) {
+			var aDate = a.created;
+			var bDate = b.created; 
+			return ((aDate < bDate) ? -1 : ((aDate > bDate) ? 1 : 0));
+		}
+		
 		$(document).ready(function() {
 			var plan	= ''; // global variable
 			
@@ -64,20 +78,42 @@
 			// Load all the plans
 			$.getJSON('api/listplans.php', function(resp) {
 				
+				console.log('Listing Plans');
+				
+				if(resp.error != undefined) {
+					console.log('Error in listing plans');
+					alert(resp.error.message);
+					return false;
+				}
+				
+				// Sorting plans according to created time - currently the API doesn't support order
+				// Note - When creating plan have to create in the order of display
+				resp.data.sort(SortByDate);
+				
 				// Loop through list and display plans
 				for(var i = 0; i < resp.data.length; i++) {
-					var template = $('#plan_template').html();
+					var template	= $('#plan_template').html();
+					var plan 		= resp.data[i];
 					
-					template = template.replace(/__NAME__/g, resp.data[i]['name']);
-					template = template.replace(/__PLAN__/g, resp.data[i]['id']);
-					template = template.replace(/__AMOUNT_INDOLLARS__/g, resp.data[i]['amount'] / 100);
-					template = template.replace(/__AMOUNT__/g, resp.data[i]['amount']);
-					template = template.replace(/__CURRENCY__/g, resp.data[i]['currency']);
-					template = template.replace(/__CURRENCY_CAPS__/g, resp.data[i]['currency'].toUpperCase());
-					template = template.replace(/__TRIAL__/g, resp.data[i]['trial_period_days'] ? resp.data[i]['trial_period_days'] : 0);
-					template = template.replace(/__DESCRIPTION__/g, resp.data[i]['metadata']['description'] ? resp.data[i]['metadata']['description'] : '');
+					console.log(plan);
+					
+					// Use the metdata 'product' to filter out for communit manager plans
+					if(plan['metadata']['product'] == undefined || plan['metadata']['product'] != 'cm') {
+						continue;
+					}
+					
+					template = template.replace(/__NAME__/g,	plan['name']);
+					template = template.replace(/__PLAN__/g,	plan['id']);
+					template = template.replace(/__AMOUNT__/g,	plan['amount']);
+					template = template.replace(/__CURRENCY__/g,	plan['currency']);
+					template = template.replace(/__INTERVAL__/g,	plan['interval']);
+					template = template.replace(/__TRIAL__/g,		plan['trial_period_days'] ? plan['trial_period_days'] : 0);
+					template = template.replace(/__DESCRIPTION__/g,	plan['metadata']['description'] ? plan['metadata']['description'] : '');
+					template = template.replace(/__AMOUNTASINT__/g,	(plan['amount'] / 100).toFixed(2));
 					
 					$('#subscription_plans').append(template);
+					
+					$('span.digits').digits();
 				}
 			});
 		});
@@ -89,7 +125,8 @@
 				<div class="caption">
 					<h3>__NAME__</h3>
 					
-					<p>__AMOUNT_INDOLLARS__  __CURRENCY_CAPS__</p>
+					<p><span style="text-transform: uppercase;">__CURRENCY__<span> <span class="digits">__AMOUNTASINT__</span></p>
+					<p>per __INTERVAL__</p>
 					<p>__TRIAL__ Days of trial</p>
 					
 					<p>__DESCRIPTION__</p>
