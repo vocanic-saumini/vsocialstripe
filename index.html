@@ -50,9 +50,20 @@
 			    		token	: token.id,
 			    		email	: token.email,
 			    		plan	: plan
+			    		
 			    	}, function(resp) {
-			    		console.log(resp);
-			    	});
+			    		
+			    		if(resp.error != undefined) {
+			    			console.log('Error subscribing');
+							alert(resp.error.message);
+							
+			    		} else {
+			    			console.log('Subscribed successfully');
+			    			alert('Subscribed successfully');
+			    			location.reload();
+			    		}
+			    		
+			    	}, 'json');
 				}
 			});
 			
@@ -103,7 +114,7 @@
 						continue;
 					}
 					
-					console.log(plan);
+					//console.log(plan);
 					
 					template = template.replace(/__NAME__/g,	plan['name']);
 					template = template.replace(/__PLAN__/g,	plan['id']);

@@ -1,20 +1,23 @@
 <?php
-
-require_once('init.php');
+require_once ('init.php');
 
 // Inputs
-$customerId = $_GET['customer'];
+$customerId = $_GET ['customer'];
 
 // Get user invoices
 try {
 	
 	$invoices = \Stripe\Invoice::all(array(
-		'customer' => $customerId
+		'customer' => $customerId 
 	));
 	
-} catch(Exception $e) {
-	echo json_encode(array('error' => array('message' => $e->getMessage())));
+} catch (Exception $e) {
+	echo json_encode(array(
+			'error' => array (
+				'message' => $e->getMessage() 
+			)
+	));
 	return;
 }
 
-echo $invoices->__toJSON();
+echo $invoices->__toJSON ();

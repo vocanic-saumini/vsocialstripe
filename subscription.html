@@ -26,9 +26,9 @@
 <body>
 	
 	<script>
-		var urlpath		= 'curl/'; // To use curl
-		//var urlpath		= ''; // To use Strip - PHP library
-		var user		= 'cus_AIQCp4xTozIlPj';
+		//var urlpath		= 'curl/'; // To use curl
+		var urlpath		= ''; // To use Strip - PHP library
+		var user		= 'cus_AIqDGBXVvOqmyH';
 		
 		// Separating three digits using comma
 		$.fn.digits = function() {
@@ -45,7 +45,7 @@
 		}
 		
 		$(document).ready(function() {
-			$('#subscriptionModal').on('click', '.subscribe', function(e) {
+			$('#subscriptionModal').on('click', '.updatesubscribe', function(e) {
 				var subscription	= $(this).data('subscription');
 				var plan			= $(this).data('plan');
 				
@@ -53,8 +53,68 @@
 					subscription	: subscription,
 		    		plan			: plan
 		    	}, function(resp) {
-		    		console.log(resp);
+		    		
+		    		if(resp.error != undefined) {
+		    			console.log('Error updating subscription');
+						alert(resp.error.message);
+						
+		    		} else {
+		    			console.log('Subscription updated successfully');
+		    			alert('Subscription updated successfully');
+		    			location.reload();
+		    		}
+		    		
 		    	});
+			});
+			
+			$('#subscriptionModal').on('click', '.createsubscribe', function(e) {
+				var amount		= $(this).data('amount');
+				var currency	= $(this).data('currency');
+				var plan		= $(this).data('plan'); 
+				
+				var handler = StripeCheckout.configure({
+					key		: 'pk_test_tLCBlrwwbEVqbN9ebZ8GZuMA',
+					image	: 'https://vsocial.s3.amazonaws.com/website/assets/images/VSocial_logo_2.png',
+					locale	: 'auto',
+					token	: function(token) {
+				    	// You can access the token ID with `token.id`.
+				    	// Get the token ID to your server-side code for use.
+				    	
+						$.post('api/multiplesubscribe.php', {
+				    		token	: token.id,
+				    		plan	: plan,
+				    		customer: user
+				    	}, function(resp) {
+				    		
+				    		if(resp.error != undefined) {
+				    			console.log('Error subscribing');
+								alert(resp.error.message);
+								
+				    		} else {
+				    			console.log('Subscribed successfully');
+				    			alert('Subscribed successfully');
+				    			location.reload();
+				    		}
+				    		
+				    	}, 'json');
+					}
+				});
+				
+				// Retrieve customer for email
+				$.getJSON('api/'+urlpath+'customer.php?customer='+user, function(resp) {
+					var customer = resp;
+					
+					// Open Checkout with further options:
+					handler.open({
+						'email'			: customer.email,
+						'name'			: 'Vsocial.com',
+						'description'	: '',
+						'allowRememberMe' : false,
+						'zipCode'		: true,
+						'billingAddress': true
+					});
+				});
+				
 			});
 			
 			$('#user_subscriptions').on('click', '.subscribe', function(e) {
@@ -87,7 +147,7 @@
 							continue;
 						}
 						
-						console.log(plan);
+						//console.log(plan);
 						
 						template = template.replace(/__NAME__/g,	plan['name']);
 						template = template.replace(/__PLAN__/g,	plan['id']);
@@ -140,7 +200,7 @@
 							continue;
 						}
 						
-						console.log(plan);
+						//console.log(plan);
 						
 						template = template.replace(/__NAME__/g,	plan['name']);
 						template = template.replace(/__PLAN__/g,	plan['id']);
@@ -290,7 +350,7 @@
 					var template		= $('#subscription_template').html();
 					var subscription	= resp.subscribed.data[i];
 					
-					console.log(subscription);
+					//console.log(subscription);
 					
 					template = template.replace(/__SUBSCRIPTION__/g,	subscription['id']);
 					template = template.replace(/__PLAN_ID__/g,			subscription['plan']['id']);
@@ -298,10 +358,13 @@
 					template = template.replace(/__PLAN_NAME__/g,		subscription['plan']['statement_descriptor']);
 					template = template.replace(/__CURRENCY__/g,		subscription['plan']['currency'].toUpperCase());
 					
+					var amount = 0;
+					
 					if(subscription['status'] == 'trialing') {
 						template = template.replace(/__AMOUNTASINT__/g,		'0.00');
 					} else {
-						template = template.replace(/__AMOUNTASINT__/g,		(subscription['plan']['amount'] / 100).toFixed(2));						
+						template = template.replace(/__AMOUNTASINT__/g,		(subscription['plan']['amount'] / 100).toFixed(2));		
+						amount = subscription['plan']['amount'];
 					}
 					
 					template = template.replace(/__DESCRIPTION__/g,		subscription['plan']['metadata']['description']);
@@ -309,7 +372,7 @@
 					template = template.replace(/__FROM__/g,			moment.unix(subscription['current_period_start']).format('DD MMM, YYYY'));
 					template = template.replace(/__TO__/g,				moment.unix(subscription['current_period_end']).format('DD MMM, YYYY'));
 					
-					total += subscription['plan']['amount'];
+					total += amount;
 					
 					$('#user_subscriptions').append(template);
 				}
@@ -346,7 +409,7 @@
 					template += '<td><button class="inovice btn btn-primary" data-invoice=\'' + JSON.stringify(invoice) + '\'><span class="glyphicon glyphicon-download"></span></button></td>';
 					template += '</tr>';
 					
-					console.log(invoice);
+					//console.log(invoice);
 					
 					$('#user_invoices').append(template);
 				}
@@ -358,7 +421,7 @@
 			$.getJSON('api/'+urlpath+'customer.php?customer='+user, function(resp) {
 				
 				console.log('Listing billing details');
-				console.log(resp);
+				//console.log(resp);
 				
 				$('#billing').append('<div class="row"><div class="col-md-4"><label>Name</label> : </div><div class="col-md-8">' + resp.sources.data[0].name + '</div></div>');
 				$('#billing').append('<div class="row"><div class="col-md-4"><label>Email</label> : </div><div class="col-md-8">' + resp.email + '</div></div>');
@@ -387,7 +450,7 @@
 					
 					<p>__DESCRIPTION__</p>
 					
-					<button class="subscribe btn btn-primary" data-subscription="__SUBSCRIPTION__" data-plan="__PLAN__">Update</button>
+					<button class="updatesubscribe btn btn-primary" data-subscription="__SUBSCRIPTION__" data-plan="__PLAN__">Update</button>
 				</div>
 			</div>
 		</div>
@@ -405,7 +468,7 @@
 					
 					<p>__DESCRIPTION__</p>
 					
-					<button class="subscribe btn btn-primary" data-amount="__AMOUNT__" data-currency="__CURRENCY__" data-plan="__PLAN__">Try now</button>
+					<button class="createsubscribe btn btn-primary" data-amount="__AMOUNT__" data-currency="__CURRENCY__" data-plan="__PLAN__">Try now</button>
 				</div>
 			</div>
 		</div>

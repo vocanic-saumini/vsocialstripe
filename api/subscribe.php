@@ -1,15 +1,15 @@
 <?php
+require_once ('init.php');
 
-require_once('init.php');
-
-$token	= $_POST['token'];
-$email	= $_POST['email'];
-$plan	= $_POST['plan'];
+// Inputs
+$token	= $_POST ['token'];
+$email	= $_POST ['email'];
+$plan	= $_POST ['plan'];
 
 $customer = \Stripe\Customer::create(array(
 	'email'		=> $email,
 	'source'	=> $token,
-	'plan'		=> $plan
+	'plan'		=> $plan 
 ));
 
-echo $customer->__toJSON();
+echo $customer->__toJSON ();

@@ -1,10 +1,9 @@
 <?php
-
 require_once ('init.php');
 
 // Inputs
-$stripeToken	= $_POST['token'];
-$customerId		= $_POST['customer'];
+$stripeToken	= $_POST ['token'];
+$customerId		= $_POST ['customer'];
 
 try {
 	
@@ -12,9 +11,13 @@ try {
 	$customer->source = $stripeToken;
 	$customer->save();
 	
-	echo $customer->__toJSON();
+	echo $customer->__toJSON ();
 	
-} catch(Exception $e) {
-	echo json_encode(array('error' => array('message' => $e->getMessage())));
+} catch ( Exception $e ) {
+	echo json_encode(array (
+			'error' => array(
+				'message' => $e->getMessage() 
+			)
+	));
 	return;
 }

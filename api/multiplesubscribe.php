@@ -2,15 +2,17 @@
 require_once ('init.php');
 
 // Inputs
-$subscriptionId = $_POST ['subscription'];
+$customer	= $_POST ['customer'];
+$newPlan	= $_POST ['plan'];
 
-// Cancel subscription
 try {
 	
-	$subscription = \Stripe\Subscription::retrieve($subscriptionId);
-	$subscription->cancel();
+	$subscription = \Stripe\Subscription::create(array(
+		'customer'	=> $customer,
+		'plan'		=> $newPlan 
+	));
 	
-} catch (Exception $e) {
+} catch(Exception $e) {
 	echo json_encode(array(
 			'error' => array(
 				'message' => $e->getMessage() 
