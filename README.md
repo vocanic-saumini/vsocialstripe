@@ -6,7 +6,7 @@
 
 ### Things I tried
 
-#####Check things in below links
+##### Check things in below links
 
 - https://dev1.vocanic.net/stripe/
 - https://dev1.vocanic.net/stripe/subscription.html
@@ -14,8 +14,8 @@
 1. Listing plans
 2. Listing user subscriptions
 3. Listing user invoices & Download
-4. Cancel subscription
-5. 
+4. Canceling subscription
+5. Updating payment method & billing address - Both as one, cannot update only billing address or only payment method
 
 ### Things to go thorugh
 
