@@ -30,9 +30,9 @@
 		
 		// This will sort your array
 		function SortByDate(a, b) {
-			var aDate = a.created;
-			var bDate = b.created; 
-			return ((aDate < bDate) ? -1 : ((aDate > bDate) ? 1 : 0));
+			var aAmount = a.amount;
+			var bAmount = b.amount; 
+			return ((aAmount < bAmount) ? -1 : ((aAmount > bAmount) ? 1 : 0));
 		}
 		
 		$(document).ready(function() {

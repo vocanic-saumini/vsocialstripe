@@ -303,7 +303,8 @@
 					
 					var currentWidth = $('#pdfTemplateView').width();
 					
-					$('#pdfTemplateView').width((595.28 * 1.33333) - 80).css('max-width', 'none'); // 595.28 = a4
+					//$('#pdfTemplateView').width((595.28 * 1.33333) - 80).css('max-width', 'none'); // 595.28 = a4
+					$('#pdfTemplateView').width(730).css('max-width', 'none'); // 595.28 = a4
 					
 					return html2canvas($('#pdfTemplateView'), {
 						imageTimeout : 2000,
