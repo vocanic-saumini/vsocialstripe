@@ -443,6 +443,7 @@
 					template += '<td>' + moment.unix(invoice['date']).format('YYYY-MM-DD HH:mm:ss') + '</td>';
 					template += '<td><span class="digits">' + (invoice['total'] / 100).toFixed(2) + '</span></td>';
 					template += '<td><button class="inovice btn btn-primary" data-invoice=\'' + JSON.stringify(invoice) + '\'><span class="glyphicon glyphicon-download"></span></button></td>';
+					template += '<td><a href="download.php?invoice='+invoice.id+'" class="backendinovice btn btn-primary"><span class="glyphicon glyphicon-download"></span></a></td>';
 					template += '</tr>';
 					
 					//console.log(invoice);
@@ -664,7 +665,8 @@
 				<tr>
 					<th>Date</th>
 					<th>Amount (SGD)</th>
-					<th>Download</th>
+					<th>Frontend Download</th>
+					<th>Backend Download</th>
 				</tr>
 			</thead>
 			
